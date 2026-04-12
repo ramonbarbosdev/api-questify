@@ -56,14 +56,14 @@ public class DesafioFacadeService {
             boolean sucesso = tentativas.stream()
             .anyMatch(r -> Boolean.TRUE.equals(r.getFlSucesso()));
 
-            boolean esgotouTentativas = tentativas.size() >= MAXIMO_TENTATIVA;
+            boolean finalizar = tentativas.size() >= MAXIMO_TENTATIVA || sucesso;
 
             ResultadoDTO resultadoDTO = new ResultadoDTO();
             resultadoDTO.setSucesso(sucesso);
             resultadoDTO.setRespostas(respostas);
             resultadoDTO.setTentativas(tentativasStatus);
 
-            dto.setFlFinalizado(esgotouTentativas);
+            dto.setFlFinalizado(finalizar);
             dto.setResultado(resultadoDTO);
 
             return dto;
