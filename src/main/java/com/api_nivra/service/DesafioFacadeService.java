@@ -21,7 +21,7 @@ public class DesafioFacadeService {
     @Autowired
     private ResultadoRepository resultadoRepository;
 
-     public List<DesafioComResultadoDTO> obterDesafiosComResultado(String idDispositivo) {
+    public List<DesafioComResultadoDTO> obterDesafiosComResultado(String idDispositivo) {
 
         List<Desafio> desafios = desafioService.obterDesafiosAtivos();
 
@@ -30,53 +30,38 @@ public class DesafioFacadeService {
             DesafioComResultadoDTO dto = new DesafioComResultadoDTO();
             dto.setIdDesafio(desafio.getIdDesafio());
             dto.setDsPergunta(desafio.getDsPergunta());
-
-            // =========================
-            // 🔎 buscar tentativas
-            // =========================
+            dto.setTpDesafio(desafio.getTpDesafio());
+            
             List<Resultado> tentativas = resultadoRepository
                     .buscarPorDesafioEdispositivo(
                             desafio.getIdDesafio(),
-                            idDispositivo
-                    );
+                            idDispositivo);
 
-            // =========================
-            // 🟡 nunca respondeu
-            // =========================
             if (tentativas.isEmpty()) {
-                dto.setRespondido(false);
                 dto.setResultado(null);
                 return dto;
             }
 
-            // =========================
-            // 🧠 respostas do usuário
-            // =========================
             List<String> respostas = tentativas.stream()
                     .map(Resultado::getDsResposta)
                     .toList();
 
-            // =========================
-            // 🧠 status já persistido
-            // =========================
             List<String> tentativasStatus = tentativas.stream()
                     .map(Resultado::getTpStatus)
                     .toList();
 
-            // =========================
-            // 🎯 sucesso
-            // =========================
-            boolean sucesso = tentativasStatus.contains("correct");
+            boolean sucesso = tentativas.stream()
+            .anyMatch(r -> Boolean.TRUE.equals(r.getFlSucesso()));
 
-            // =========================
-            // 📦 montar resultado
-            // =========================
+            int maxTentativas = 5;
+            boolean esgotouTentativas = tentativas.size() >= maxTentativas;
+
             ResultadoDTO resultadoDTO = new ResultadoDTO();
             resultadoDTO.setSucesso(sucesso);
             resultadoDTO.setRespostas(respostas);
             resultadoDTO.setTentativas(tentativasStatus);
 
-            dto.setRespondido(true);
+            dto.setFlFinalizado(esgotouTentativas);
             dto.setResultado(resultadoDTO);
 
             return dto;
