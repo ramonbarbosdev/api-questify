@@ -1,6 +1,5 @@
 package com.api_nivra.dto;
 
-import java.util.List;
 
 import com.api_nivra.enums.TipoDesafio;
 
@@ -16,6 +15,8 @@ import lombok.Setter;
 public class ResultadoResponseDTO {
 
     private Boolean sucesso;
-    private TipoDesafio tipo;
-    private Object resposta;
+    private Boolean flFinalizado;
+    private TipoDesafio tpDesafio;
+    private RespostaDTO resposta;
+    
 }

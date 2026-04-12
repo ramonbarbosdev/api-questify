@@ -21,6 +21,9 @@ public class DesafioFacadeService {
     @Autowired
     private ResultadoRepository resultadoRepository;
 
+    public static final Integer MAXIMO_TENTATIVA = 5;
+
+
     public List<DesafioComResultadoDTO> obterDesafiosComResultado(String idDispositivo) {
 
         List<Desafio> desafios = desafioService.obterDesafiosAtivos();
@@ -31,7 +34,7 @@ public class DesafioFacadeService {
             dto.setIdDesafio(desafio.getIdDesafio());
             dto.setDsPergunta(desafio.getDsPergunta());
             dto.setTpDesafio(desafio.getTpDesafio());
-            
+
             List<Resultado> tentativas = resultadoRepository
                     .buscarPorDesafioEdispositivo(
                             desafio.getIdDesafio(),
@@ -53,8 +56,7 @@ public class DesafioFacadeService {
             boolean sucesso = tentativas.stream()
             .anyMatch(r -> Boolean.TRUE.equals(r.getFlSucesso()));
 
-            int maxTentativas = 5;
-            boolean esgotouTentativas = tentativas.size() >= maxTentativas;
+            boolean esgotouTentativas = tentativas.size() >= MAXIMO_TENTATIVA;
 
             ResultadoDTO resultadoDTO = new ResultadoDTO();
             resultadoDTO.setSucesso(sucesso);

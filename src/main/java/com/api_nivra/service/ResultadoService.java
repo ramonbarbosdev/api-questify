@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.api_nivra.dto.DesafioComResultadoDTO;
 import com.api_nivra.dto.DesafioDiarioResponseDTO;
+import com.api_nivra.dto.RespostaDTO;
 import com.api_nivra.dto.ResultadoDTO;
 import com.api_nivra.dto.ResultadoRequestDTO;
 import com.api_nivra.dto.ResultadoResponseDTO;
@@ -47,71 +48,81 @@ public class ResultadoService {
         Desafio desafio = desafioService.obterDesafioAtivoPorId(dto.getIdDesafio());
 
         Resultado existente = obterResultadoPorDesafio(dto.getIdDesafio());
-        validarTentativas(existente);
+
+        if (existente != null && existente.getFlSucesso()) {
+            return erro("Você já respondeu o desafio.", desafio);
+        }
 
         Usuario usuario = obterOuSalvarDipositivo(dto.getIdDispositivo());
 
         if (usuario == null) {
-            throw new BusinessException("Usuario não existe.");
+            return erro("Usuário não existe", desafio);
         }
 
-        // =========================
-        // 🧠 VALIDAÇÃO CENTRAL
-        // =========================
-        ValidacaoResultado resultadoValidacao = validator.validar(dto.getDsResposta(), desafio);
+        ValidacaoResultado validacao = validator.validar(dto.getDsResposta(), desafio);
 
-        if (!resultadoValidacao.isValido()) {
-            throw new BusinessException(resultadoValidacao.getMensagem());
+        if (!validacao.isValido()) {
+            return erro(validacao.getMensagem(), desafio);
         }
 
         Integer nuTentativas = existente != null
                 ? existente.getNuTentativa() + 1
                 : 1;
 
-        // =========================
-        // 💾 SALVAR
-        // =========================
-        Resultado objeto = new Resultado();
-        objeto.setIdDesafio(dto.getIdDesafio());
-        objeto.setIdUsuario(usuario.getIdUsuario());
-        objeto.setDsResposta(normalizar(dto.getDsResposta()));
-        objeto.setNuTentativa(nuTentativas);
+        if (nuTentativas > MAXIMO_TENTATIVA) {
+            return erro("Limite de tentativas atingido", desafio);
+        }
 
-        objeto.setFlSucesso(resultadoValidacao.isSucesso());
-        objeto.setDtConcluido(
-                resultadoValidacao.isSucesso() ? LocalDateTime.now() : null);
+        boolean esgotouTentativas = nuTentativas >= MAXIMO_TENTATIVA;
 
-        // 🔥 NOVO (IMPORTANTE)
-        objeto.setTpStatus(resultadoValidacao.getStatus());
+        boolean finalizado = esgotouTentativas;
 
-        repository.save(objeto);
+        Resultado obj = new Resultado();
+        obj.setIdDesafio(dto.getIdDesafio());
+        obj.setIdUsuario(usuario.getIdUsuario());
+        obj.setDsResposta(normalizar(dto.getDsResposta()));
+        obj.setNuTentativa(nuTentativas);
+        obj.setFlSucesso(validacao.isSucesso());
+        obj.setDtConcluido(validacao.isSucesso() ? LocalDateTime.now() : null);
+        obj.setTpStatus(validacao.getStatus());
 
-        // =========================
-        // 📤 RESPOSTA PADRÃO
-        // =========================
-        Map<String, Object> resposta = new HashMap<>();
-        resposta.put("valido", true);
-        resposta.put("status", resultadoValidacao.getStatus());
-        resposta.put("feedback", resultadoValidacao.getFeedback());
+        repository.save(obj);
+
+        finalizado = validacao.isSucesso() || esgotouTentativas;
+
+        return sucesso(validacao, finalizado, desafio);
+    }
+
+    private ResultadoResponseDTO erro(String mensagem, Desafio desafio) {
+        RespostaDTO resposta = new RespostaDTO();
+        resposta.setValido(false);
+        resposta.setMensagem(mensagem);
+        resposta.setStatus(null);
+        resposta.setFeedback(null);
 
         return new ResultadoResponseDTO(
-                resultadoValidacao.isSucesso(),
+                false,
+                false,
                 desafio.getTpDesafio(),
                 resposta);
     }
 
-    private void validarTentativas(Resultado objeto) {
+    private ResultadoResponseDTO sucesso(
+            ValidacaoResultado validacao,
+            boolean finalizado,
+            Desafio desafio) {
 
-        if (objeto == null)
-            return;
+        RespostaDTO resposta = new RespostaDTO();
+        resposta.setValido(true);
+        resposta.setMensagem(null);
+        resposta.setStatus(validacao.getStatus());
+        resposta.setFeedback(validacao.getFeedback());
 
-        if (objeto.getNuTentativa() >= MAXIMO_TENTATIVA) {
-            throw new BusinessException("Limite de tentativas atingido.");
-        }
-
-        if (objeto.getFlSucesso()) {
-            throw new BusinessException("Você já respondeu o desafio.");
-        }
+        return new ResultadoResponseDTO(
+                validacao.isSucesso(),
+                finalizado,
+                desafio.getTpDesafio(),
+                resposta);
     }
 
     private String normalizar(String valor) {
