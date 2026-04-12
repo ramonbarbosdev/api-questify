@@ -53,8 +53,7 @@ public class Resultado {
     @Column(name = "id_desafio", nullable = false)
     @NotNull(message = "O desafio obrigatorio!")
     private Long idDesafio;
-    
-    
+
     @Column(name = "ds_resposta")
     private String dsResposta;
 
@@ -63,6 +62,9 @@ public class Resultado {
 
     @Column(name = "fl_sucesso")
     private Boolean flSucesso;
+
+    @Column(name = "tp_status")
+    private String tpStatus;
 
     @Column(name = "dt_concluido")
     private LocalDateTime dtConcluido;
