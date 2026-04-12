@@ -85,6 +85,7 @@ public class ResultadoService {
         obj.setFlSucesso(validacao.isSucesso());
         obj.setDtConcluido(validacao.isSucesso() ? LocalDateTime.now() : null);
         obj.setTpStatus(validacao.getStatus());
+        obj.setDsFeedback(serializarFeedback(validacao.getFeedback()));
 
         repository.save(obj);
 
@@ -149,4 +150,12 @@ public class ResultadoService {
 
         return usuario;
     }
+
+    private String serializarFeedback(List<String> feedback) {
+        if (feedback == null)
+            return null;
+        return String.join(",", feedback);
+    }
+
+   
 }

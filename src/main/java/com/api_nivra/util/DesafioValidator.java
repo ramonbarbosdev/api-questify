@@ -72,7 +72,7 @@ public class DesafioValidator {
                     true,
                     false,
                     usuario > correta ? "alto" : "baixo",
-                    null,
+                     List.of(),
                     null);
 
         } catch (Exception e) {
@@ -98,7 +98,7 @@ public class DesafioValidator {
         return new ValidacaoResultado(false, false, null, null, mensagem);
     }
 
-    private ValidacaoResultado sucesso(Object feedback, boolean sucesso) {
+    private ValidacaoResultado sucesso(List<String> feedback, boolean sucesso) {
         return new ValidacaoResultado(
                 true,
                 sucesso,

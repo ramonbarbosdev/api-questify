@@ -23,7 +23,6 @@ public class DesafioFacadeService {
 
     public static final Integer MAXIMO_TENTATIVA = 5;
 
-
     public List<DesafioComResultadoDTO> obterDesafiosComResultado(String idDispositivo) {
 
         List<Desafio> desafios = desafioService.obterDesafiosAtivos();
@@ -53,8 +52,13 @@ public class DesafioFacadeService {
                     .map(Resultado::getTpStatus)
                     .toList();
 
+            // 🔥 NOVO
+            List<List<String>> feedbacks = tentativas.stream()
+                    .map(r -> desserializarFeedback(r.getDsFeedback()))
+                    .toList();
+
             boolean sucesso = tentativas.stream()
-            .anyMatch(r -> Boolean.TRUE.equals(r.getFlSucesso()));
+                    .anyMatch(r -> Boolean.TRUE.equals(r.getFlSucesso()));
 
             boolean finalizar = tentativas.size() >= MAXIMO_TENTATIVA || sucesso;
 
@@ -62,6 +66,7 @@ public class DesafioFacadeService {
             resultadoDTO.setSucesso(sucesso);
             resultadoDTO.setRespostas(respostas);
             resultadoDTO.setTentativas(tentativasStatus);
+            resultadoDTO.setFeedbacks(feedbacks);
 
             dto.setFlFinalizado(finalizar);
             dto.setResultado(resultadoDTO);
@@ -69,6 +74,12 @@ public class DesafioFacadeService {
             return dto;
 
         }).toList();
+    }
+
+    private List<String> desserializarFeedback(String feedback) {
+        if (feedback == null || feedback.isBlank())
+            return List.of();
+        return List.of(feedback.split(","));
     }
 
 }

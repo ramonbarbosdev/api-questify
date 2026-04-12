@@ -16,5 +16,5 @@ public class ResultadoDTO {
     private boolean sucesso;
     private List<String> tentativas;
     private List<String> respostas;
-
+    private List<List<String>> feedbacks;
 }

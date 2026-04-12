@@ -66,6 +66,9 @@ public class Resultado {
     @Column(name = "tp_status")
     private String tpStatus;
 
+    @Column(name = "ds_feedback")
+    private String dsFeedback;
+
     @Column(name = "dt_concluido")
     private LocalDateTime dtConcluido;
 
