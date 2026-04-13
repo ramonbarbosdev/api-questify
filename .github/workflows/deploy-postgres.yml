@@ -15,7 +15,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-          
+
             # cria network se não existir
             if ! docker network ls | grep -q app-network; then
               docker network create app-network
@@ -38,4 +38,9 @@ jobs:
                 -v postgres_data:/var/lib/postgresql/data \
                 --restart unless-stopped \
                 postgres:15-alpine
+            fi
+
+            # conecta somente se não estiver na network
+            if ! docker inspect -f '{{json .NetworkSettings.Networks}}' postgres-db | grep -q app-network; then
+              docker network connect app-network postgres-db
             fi
