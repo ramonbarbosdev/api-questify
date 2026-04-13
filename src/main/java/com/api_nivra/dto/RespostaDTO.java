@@ -10,9 +10,9 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RespostaDTO {
-     private boolean valido;
+    private boolean valido;
     private String mensagem;
     private String status;
+    private String respostaUsuario;
     private Object feedback;
 }
-

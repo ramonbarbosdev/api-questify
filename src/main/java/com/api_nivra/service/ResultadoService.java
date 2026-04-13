@@ -91,7 +91,7 @@ public class ResultadoService {
 
         finalizado = validacao.isSucesso() || esgotouTentativas;
 
-        return sucesso(validacao, finalizado, desafio);
+        return sucesso(validacao, finalizado, desafio, obj.getDsResposta());
     }
 
     private ResultadoResponseDTO erro(String mensagem, Desafio desafio) {
@@ -111,13 +111,16 @@ public class ResultadoService {
     private ResultadoResponseDTO sucesso(
             ValidacaoResultado validacao,
             boolean finalizado,
-            Desafio desafio) {
+            Desafio desafio,
+            String respostaUsuario
+        ) {
 
         RespostaDTO resposta = new RespostaDTO();
         resposta.setValido(true);
         resposta.setMensagem(null);
         resposta.setStatus(validacao.getStatus());
         resposta.setFeedback(validacao.getFeedback());
+        resposta.setRespostaUsuario(respostaUsuario);
 
         return new ResultadoResponseDTO(
                 validacao.isSucesso(),
