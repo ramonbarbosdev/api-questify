@@ -16,7 +16,6 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
 
-            # cria network se não existir
             if ! docker network ls | grep -q app-network; then
               docker network create app-network
             fi
