@@ -48,6 +48,10 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
+           
+            if ! docker network ls | grep -q app-network; then
+              docker network create app-network
+            fi
 
             docker pull ghcr.io/${{ github.repository }}:latest
 
@@ -55,12 +59,12 @@ jobs:
             docker rm ${{ env.CONTAINER_NAME }} || true
 
             docker run -d \
-            --name ${{ env.CONTAINER_NAME }} \
-            --network app-network \
-            --restart unless-stopped \
-            --memory=512m \
-            -p ${{ env.HOST_PORT }}:${{ env.CONTAINER_PORT }} \
-            --env-file ${{ env.ENV_FILE }} \
-            ghcr.io/${{ github.repository }}:latest
+              --name ${{ env.CONTAINER_NAME }} \
+              --network app-network \
+              --restart unless-stopped \
+              --memory=512m \
+              -p ${{ env.HOST_PORT }}:${{ env.CONTAINER_PORT }} \
+              --env-file ${{ env.ENV_FILE }} \
+              ghcr.io/${{ github.repository }}:latest
 
             echo "Deploy finished successfully"
