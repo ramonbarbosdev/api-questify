@@ -21,7 +21,6 @@ jobs:
               docker network create app-network
             fi
 
-            # garante postgres
             if [ "$(docker ps -q -f name=postgres-db)" ]; then
               echo "Postgres já está rodando"
             elif [ "$(docker ps -aq -f name=postgres-db)" ]; then
@@ -40,7 +39,6 @@ jobs:
                 postgres:15-alpine
             fi
 
-            # conecta somente se não estiver na network
             if ! docker inspect -f '{{json .NetworkSettings.Networks}}' postgres-db | grep -q app-network; then
               docker network connect app-network postgres-db
             fi
