@@ -27,7 +27,6 @@ public class DesafioService {
     @Autowired
     private DesafioAgendaService agendaService;
 
-
     @Transactional(rollbackFor = Exception.class)
     public void salvar(DesafioRequestDTO dto) {
 
@@ -51,6 +50,24 @@ public class DesafioService {
         }
 
         return objeto.get();
+    }
+
+    public List<DesafioDiarioResponseDTO> obterDesafios() {
+
+        List<Desafio> objetos = agendaService.obterDesafiosAtivos();
+
+        List<DesafioDiarioResponseDTO> listResposta = new ArrayList<>();
+
+        for (Desafio desafio : objetos) {
+            DesafioDiarioResponseDTO resposta = new DesafioDiarioResponseDTO();
+            resposta.setDsPergunta(desafio.getDsPergunta());
+            resposta.setTpDificuldade(desafio.getTpDificuldade());
+            resposta.setIdDesafio(desafio.getIdDesafio());
+            resposta.setTpDesafio(desafio.getTpDesafio());
+
+            listResposta.add(resposta);
+        }
+        return listResposta;
     }
 
     public List<Desafio> obterDesafiosAtivos() {

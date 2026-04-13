@@ -33,11 +33,11 @@ public class DesafioController {
     @Autowired
     private DesafioFacadeService facade;
 
-    // @GetMapping("/ativos")
-    // public List<DesafioDiarioResponseDTO> obterDesafiosAtivos() {
+    @GetMapping("/ativos")
+    public List<DesafioDiarioResponseDTO> obterDesafiosAtivos() {
 
-    // return service.obterDesafiosAtivos();
-    // }
+    return service.obterDesafios();
+    }
 
     @PostMapping("/")
     public ResponseEntity<?> criarDesafio(@RequestBody DesafioRequestDTO dto) {
