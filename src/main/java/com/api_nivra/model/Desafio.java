@@ -11,14 +11,19 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.api_nivra.enums.Dificuldade;
 import com.api_nivra.enums.TipoDesafio;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.validation.constraints.NotBlank;
@@ -56,6 +61,17 @@ public class Desafio {
 
     @Column(name = "dt_cadastro", nullable = false, updatable = false)
     private LocalDateTime dtCadastro;
+
+    @OneToOne(mappedBy = "desafio", cascade = CascadeType.ALL, orphanRemoval = true)
+    private DesafioQuiz conteudo;
+
+    public void setConteudo(DesafioQuiz quiz) {
+        this.conteudo = quiz;
+
+        if (quiz != null) {
+            quiz.setDesafio(this); // 🔥 ESSENCIAL
+        }
+    }
 
     @PrePersist
     protected void onCreate() {

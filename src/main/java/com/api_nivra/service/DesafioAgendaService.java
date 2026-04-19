@@ -16,51 +16,62 @@ import com.api_nivra.repository.DesafioAgendaRepository;
 @Service
 public class DesafioAgendaService {
 
-    @Autowired
-    private DesafioAgendaRepository repository;
+        @Autowired
+        private DesafioAgendaRepository repository;
 
-    public List<Desafio> obterDesafiosAtivos() {
+        public List<Desafio> obterDesafiosAtivos() {
 
-        LocalDate agora = LocalDate.now();
+                LocalDate agora = LocalDate.now();
 
-        List<DesafioAgenda> agendas = repository
-                .findByDtInicioLessThanEqualAndDtFimGreaterThanEqual(agora, agora);
+                List<DesafioAgenda> agendas = repository
+                                .findByDtInicioLessThanEqualAndDtFimGreaterThanEqual(agora, agora);
 
-        return agendas.stream()
-                .map(DesafioAgenda::getDesafio)
-                .toList();
-    }
-
-    public Boolean existeDesafioNoPeriodo(Long idDesafio, LocalDate agora)
-    {
-            return  repository
-            .existsByDesafioIdDesafioAndDtInicioLessThanEqualAndDtFimGreaterThanEqual(
-                    idDesafio,
-                    agora,
-                    agora
-            );
-    }
-
-    public void criarAgendaPorDesafio(DesafioRequestDTO dto, Desafio desafio) {
-
-        if (dto.getDtInicio().isAfter(dto.getDtFim())) {
-            throw new BusinessException("Data início não pode ser maior que data fim");
+                return agendas.stream()
+                                .map(DesafioAgenda::getDesafio)
+                                .toList();
         }
 
-        boolean conflito = repository
-                .existsByDtInicioLessThanEqualAndDtFimGreaterThanEqual(
-                        dto.getDtFim(),
-                        dto.getDtInicio());
+        public Boolean existeDesafioNoPeriodo(Long idDesafio, LocalDate agora) {
+                return repository
+                                .existsByDesafioIdDesafioAndDtInicioLessThanEqualAndDtFimGreaterThanEqual(
+                                                idDesafio,
+                                                agora,
+                                                agora);
+        }
 
-        // if (conflito) {
-        //     throw new BusinessException("Já existe um desafio ativo nesse período");
-        // }
+        public void criarAgendaPorDesafio(DesafioRequestDTO dto, Desafio desafio) {
 
-        DesafioAgenda agenda = new DesafioAgenda();
-        agenda.setIdDesafio(desafio.getIdDesafio());
-        agenda.setDtInicio(dto.getDtInicio());
-        agenda.setDtFim(dto.getDtFim());
+                if (dto.getDtInicio().isAfter(dto.getDtFim())) {
+                        throw new BusinessException("Data início não pode ser maior que data fim");
+                }
 
-        repository.save(agenda);
-    }
+                boolean conflito = repository
+                                .existsByDtInicioLessThanEqualAndDtFimGreaterThanEqual(
+                                                dto.getDtFim(),
+                                                dto.getDtInicio());
+
+                // if (conflito) {
+                // throw new BusinessException("Já existe um desafio ativo nesse período");
+                // }
+
+                DesafioAgenda agenda = new DesafioAgenda();
+                agenda.setIdDesafio(desafio.getIdDesafio());
+                agenda.setDtInicio(dto.getDtInicio());
+                agenda.setDtFim(dto.getDtFim());
+
+                repository.save(agenda);
+        }
+
+        public void deletarRegistros(Long idDesafio)
+        {
+                List<DesafioAgenda> objetos = repository.findAllByIdDesafio(idDesafio);
+
+                if (objetos == null) {
+                        return;
+                }
+
+                for (DesafioAgenda objeto : objetos) {
+                        repository.delete(objeto);
+                }
+        }
 }

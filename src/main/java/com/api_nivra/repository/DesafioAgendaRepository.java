@@ -10,17 +10,18 @@ import com.api_nivra.model.DesafioAgenda;
 
 public interface DesafioAgendaRepository extends JpaRepository<DesafioAgenda, Long> {
 
-    List<DesafioAgenda> findByDtInicioLessThanEqualAndDtFimGreaterThanEqual(
-            LocalDate agora1,
-            LocalDate agora2);
+        List<DesafioAgenda> findByDtInicioLessThanEqualAndDtFimGreaterThanEqual(
+                        LocalDate agora1,
+                        LocalDate agora2);
 
-    boolean existsByDtInicioLessThanEqualAndDtFimGreaterThanEqual(
-            LocalDate fim,
-            LocalDate inicio);
+        boolean existsByDtInicioLessThanEqualAndDtFimGreaterThanEqual(
+                        LocalDate fim,
+                        LocalDate inicio);
 
-    boolean existsByDesafioIdDesafioAndDtInicioLessThanEqualAndDtFimGreaterThanEqual(
-            Long idDesafio,
-            LocalDate inicio,
-            LocalDate fim);
+        boolean existsByDesafioIdDesafioAndDtInicioLessThanEqualAndDtFimGreaterThanEqual(
+                        Long idDesafio,
+                        LocalDate inicio,
+                        LocalDate fim);
 
+        List<DesafioAgenda> findAllByIdDesafio(Long idDesafio);
 }

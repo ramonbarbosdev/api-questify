@@ -24,4 +24,6 @@ public class DesafioDiarioResponseDTO
     private String dsResposta;
     private Dificuldade tpDificuldade;
     private TipoDesafio tpDesafio;
+
+     private QuizResponseDTO conteudo;
 }

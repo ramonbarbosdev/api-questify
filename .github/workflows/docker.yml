@@ -65,6 +65,7 @@ jobs:
               --memory=512m \
               -p ${{ env.HOST_PORT }}:${{ env.CONTAINER_PORT }} \
               --env-file ${{ env.ENV_FILE }} \
+               -e SPRING_PROFILES_ACTIVE=prod \
               ghcr.io/${{ github.repository }}:latest
 
             echo "Deploy finished successfully"

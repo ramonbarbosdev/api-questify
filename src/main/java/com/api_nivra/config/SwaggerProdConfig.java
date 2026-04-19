@@ -2,29 +2,26 @@ package com.api_nivra.config;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
-
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 import java.util.List;
 import io.swagger.v3.oas.models.servers.Server;
 
 @Configuration
-public class SwaggerConfig {
-
-    @Value("${app.swagger.server-url}")
-    private String serverUrl;
+@Profile("prod")
+public class SwaggerProdConfig {
 
     @Bean
-    OpenAPI customOpenAPI() {
+    public OpenAPI openApiProd() {
         return new OpenAPI()
                 .info(new Info()
                         .title("API Nivra")
                         .version("v1")
                         .description("API pública"))
                 .servers(List.of(
-                        new Server().url(serverUrl)
+                        new Server().url("https://api-nivra.ramoncode.com.br/nivra")
                 ));
     }
 }
