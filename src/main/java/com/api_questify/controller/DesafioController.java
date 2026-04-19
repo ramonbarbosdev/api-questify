@@ -1,7 +1,6 @@
 package com.api_questify.controller;
 
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +21,6 @@ import com.api_questify.dto.IdResponseDTO;
 import com.api_questify.model.Desafio;
 import com.api_questify.service.DesafioFacadeService;
 import com.api_questify.service.DesafioService;
-import com.api_questify.service.ResultadoService;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
