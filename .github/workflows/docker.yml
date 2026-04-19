@@ -63,4 +63,4 @@ jobs:
               -e SPRING_PROFILES_ACTIVE=prod \
               ghcr.io/${{ env.IMAGE_NAME }}:latest
 
-            docker image prune -a -f
+            # docker image prune -a -f
