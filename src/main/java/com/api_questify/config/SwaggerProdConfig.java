@@ -21,6 +21,6 @@ public class SwaggerProdConfig {
                                                 .version("v1")
                                                 .description("API pública"))
                                 .servers(List.of(
-                                                new Server().url("https://api-nivra.ramoncode.com.br/questify")));
+                                                new Server().url("https://api-questify.ramoncode.com.br/questify")));
         }
 }
