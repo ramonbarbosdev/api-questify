@@ -13,10 +13,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.api_nivra.dto.ApiResponseDTO;
 import com.api_nivra.dto.DesafioComResultadoDTO;
 import com.api_nivra.dto.DesafioDiarioResponseDTO;
 import com.api_nivra.dto.DesafioQuizRequestDTO;
 import com.api_nivra.dto.DesafioRequestDTO;
+import com.api_nivra.dto.IdResponseDTO;
 import com.api_nivra.model.Desafio;
 import com.api_nivra.service.DesafioFacadeService;
 import com.api_nivra.service.DesafioService;
@@ -37,38 +39,49 @@ public class DesafioController {
     private DesafioFacadeService facade;
 
     @GetMapping("/ativos")
-    public List<DesafioDiarioResponseDTO> obterDesafiosAtivos() {
-
-        return service.obterDesafios();
+    public ResponseEntity<List<DesafioDiarioResponseDTO>> obterDesafiosAtivos() {
+        return ResponseEntity.ok(service.obterDesafios());
     }
 
-    @PostMapping("/")
-    public ResponseEntity<?> criarDesafio(@RequestBody @Valid DesafioRequestDTO dto) {
-        Desafio objeto = service.salvar(dto);
-        return ResponseEntity.created(null).body(Map.of("resposta", "Registro salvo", "id", objeto.getIdDesafio()));
+    @PostMapping
+    public ResponseEntity<ApiResponseDTO<IdResponseDTO>> criarDesafio(
+            @RequestBody @Valid DesafioRequestDTO dto) {
+
+        Desafio desafio = service.salvar(dto);
+
+        return ResponseEntity
+                .status(201)
+                .body(new ApiResponseDTO<>(
+                        "Desafio criado com sucesso",
+                        new IdResponseDTO(desafio.getIdDesafio())));
     }
 
     @PostMapping("/quiz")
-    public ResponseEntity<?> criarDesafioQuiz(@RequestBody DesafioQuizRequestDTO dto) {
+    public ResponseEntity<ApiResponseDTO<IdResponseDTO>> criarDesafioQuiz(
+            @RequestBody @Valid DesafioQuizRequestDTO dto) {
 
-        Desafio objeto = service.salvarQuiz(dto);
-        return ResponseEntity.created(null).body(Map.of("resposta", "Registro salvo", "id", objeto.getIdDesafio()));
+        Desafio desafio = service.salvarQuiz(dto);
 
+        return ResponseEntity
+                .status(201)
+                .body(new ApiResponseDTO<>(
+                        "Quiz criado com sucesso",
+                        new IdResponseDTO(desafio.getIdDesafio())));
     }
 
     @GetMapping("/atual/{idDispositivo}")
-    public ResponseEntity<List<DesafioComResultadoDTO>> obterDesafioResultados(@PathVariable String idDispositivo) {
-        List<DesafioComResultadoDTO> objeto = facade.obterDesafiosComResultado(idDispositivo);
+    public ResponseEntity<List<DesafioComResultadoDTO>> obterDesafioResultados(
+            @PathVariable String idDispositivo) {
 
-        return ResponseEntity.ok(objeto);
-
+        return ResponseEntity.ok(
+                facade.obterDesafiosComResultado(idDispositivo));
     }
 
     @DeleteMapping("/{idDesafio}")
-    public ResponseEntity<?> deletar(@PathVariable Long idDesafio) {
+    public ResponseEntity<Void> deletar(@PathVariable Long idDesafio) {
 
         service.deletar(idDesafio);
 
-       return ResponseEntity.noContent().build();
+        return ResponseEntity.noContent().build();
     }
 }
