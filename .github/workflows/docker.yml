@@ -9,8 +9,8 @@ permissions:
   packages: write
 
 env:
-  IMAGE_NAME: ramonbarbosdev/api-questify
-  CONTAINER_NAME: api-questify
+  IMAGE_NAME: ramonbarbosdev/questify-api
+  CONTAINER_NAME: questify-api
   HOST_PORT: 8082
   CONTAINER_PORT: 8080
   ENV_FILE: /home/app/api-questify.env
