@@ -24,71 +24,101 @@ public class DesafioDiarioService {
     }
 
     public DesafioRequestDTO gerarDesafioDiario(String tema, LocalDate data) {
+        return gerarComRetry(tema, data);
+    }
 
-        try {
+    private DesafioRequestDTO gerarComRetry(String tema, LocalDate data) {
 
-            String today = data.toString();
+        for (int i = 0; i < 5; i++) {
+            try {
+                return gerarInterno(tema, data);
+            } catch (Exception e) {
+                System.out.println("Tentativa inválida: " + e.getMessage());
+            }
+        }
 
-            String prompt = """
-                    Gere um desafio inedito do tipo PALAVRA sobre o tema: %s.
+        throw new RuntimeException("Falha ao gerar desafio válido após várias tentativas");
+    }
 
-                    IMPORTANTE:
-                    A resposta DEVE obrigatoriamente ser uma palavra com EXATAMENTE 5 letras.
-                    Se nao for possivel, gere outra ate atender essa regra.
+    private DesafioRequestDTO gerarInterno(String tema, LocalDate data) {
 
-                    Retorne no formato JSON exato:
+        String today = data.toString();
 
-                    {
-                    "dsPergunta": "",
-                    "dsResposta": "",
-                    "tpDificuldade": "FACIL",
-                    "tpDesafio": "PALAVRA",
-                    "dtInicio": "%s",
-                    "dtFim": "%s"
-                    }
+   
+        String palavra = chatClient.prompt()
+                .user("""
+                        Gere uma palavra comum da lingua portuguesa com exatamente 5 letras.
 
-                    REGRAS:
-                    - Retorne APENAS JSON valido
-                    - Nao use markdown nem ```json
-                    - Nao invente campos
+                        Regras:
+                        - Apenas uma palavra
+                        - Sem acentos
+                        - Sem espacos
+                        - Apenas letras A-Z
+                        - Palavra simples do dia a dia
 
-                    - A resposta deve conter EXATAMENTE 5 letras (obrigatorio)
-                    - A resposta deve conter apenas letras A-Z
-                    - A resposta nao pode conter espacos
-                    - A resposta nao pode conter acentos
+                        Retorne somente a palavra.
+                        """)
+                .call()
+                .content()
+                .trim()
+                .toUpperCase();
 
-                    - A pergunta deve levar a uma resposta de 5 letras
+        validarPalavra(palavra);
 
-                    VALIDACAO:
-                    - Conte as letras da resposta
-                    - Se nao tiver 5 letras, descarte e gere novamente
-                     """.formatted(tema, today, today);
+        String promptPergunta = """
+                Crie uma pergunta cuja resposta seja exatamente a palavra: "%s".
 
-            DesafioRequestDTO dto = chatClient.prompt()
-                    .user(prompt)
-                    .call()
-                    .entity(DesafioRequestDTO.class);
+                Tema: %s
 
-            validarRespostaDaIa(dto, data);
+                Regras:
+                - Não pode conter a palavra na pergunta
+                - Deve ser clara e objetiva
+                - Nível fácil
+                - Baseada em conhecimento geral
 
-            return dto;
-        } catch (Exception e) {
-            e.printStackTrace(); 
-            throw new RuntimeException("Failed to generate content: " + e.getMessage(), e);
+                Retorne no formato JSON:
+
+                {
+                  "dsPergunta": "",
+                  "dsResposta": "%s",
+                  "tpDificuldade": "FACIL",
+                  "tpDesafio": "PALAVRA",
+                  "dtInicio": "%s",
+                  "dtFim": "%s"
+                }
+
+                - Retorne apenas JSON válido
+                - Não use markdown
+                """.formatted(palavra, tema, palavra, today, today);
+
+        DesafioRequestDTO dto = chatClient.prompt()
+                .user(promptPergunta)
+                .call()
+                .entity(DesafioRequestDTO.class);
+
+        validarResposta(dto, palavra, data);
+
+        return dto;
+    }
+
+    private void validarPalavra(String palavra) {
+        if (palavra == null || !palavra.matches("^[A-Z]{5}$")) {
+            throw new BusinessException("Palavra inválida gerada pela IA: " + palavra);
         }
     }
 
-    private void validarRespostaDaIa(DesafioRequestDTO dto, LocalDate data) {
+    private void validarResposta(DesafioRequestDTO dto, String palavraEsperada, LocalDate data) {
+
         if (dto == null) {
-            throw new BusinessException("IA nao retornou desafio");
+            throw new BusinessException("IA não retornou desafio");
         }
 
-        if (dto.getDsPergunta() == null || dto.getDsPergunta().trim().isEmpty()) {
-            throw new BusinessException("IA retornou pergunta vazia");
+        if (dto.getDsPergunta() == null || dto.getDsPergunta().isBlank()) {
+            throw new BusinessException("Pergunta inválida");
         }
 
-        if (dto.getDsResposta() == null || dto.getDsResposta().trim().isEmpty()) {
-            throw new BusinessException("IA retornou resposta vazia");
+        if (!palavraEsperada.equalsIgnoreCase(dto.getDsResposta())) {
+            throw new BusinessException("Resposta não corresponde à palavra gerada");
         }
 
         if (dto.getTpDificuldade() == null) {
@@ -100,7 +130,7 @@ public class DesafioDiarioService {
         }
 
         if (dto.getTpDesafio() != TipoDesafio.PALAVRA) {
-            throw new BusinessException("IA retornou tipo de desafio diferente de PALAVRA");
+            throw new BusinessException("Tipo inválido retornado pela IA");
         }
 
         dto.setDtInicio(data);
