@@ -2,6 +2,8 @@ package com.api_questify.service;
 
 import java.time.LocalDate;
 
+import org.springframework.stereotype.Service;
+
 import com.api_questify.dto.DesafioRequestDTO;
 import com.api_questify.dto.DesafioRequestGeralDTO;
 import com.api_questify.enums.Dificuldade;
@@ -9,6 +11,7 @@ import com.api_questify.enums.TipoDesafio;
 import com.api_questify.exception.BusinessException;
 import com.api_questify.interfaces.DesafioEstrategia;
 
+@Service 
 public class PalavraEstrategiaService implements DesafioEstrategia {
 
     @Override
