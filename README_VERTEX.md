@@ -77,6 +77,10 @@ OK
 export GOOGLE_APPLICATION_CREDENTIALS=/home/app/gcp-credentials.json
 ```
 
+```powershell
+echo $GOOGLE_APPLICATION_CREDENTIALS
+```
+
 ---
 
 ## Estrutura

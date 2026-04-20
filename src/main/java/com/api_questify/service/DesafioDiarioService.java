@@ -25,47 +25,53 @@ public class DesafioDiarioService {
 
     public DesafioRequestDTO gerarDesafioDiario(String tema, LocalDate data) {
 
-        String today = data.toString();
+        try {
 
-        String prompt = """
-                Gere um desafio inedito do tipo PALAVRA sobre o tema: %s.
-                Retorne no formato JSON exato:
+            String today = data.toString();
 
-                {
-                  "dsPergunta": "",
-                  "dsResposta": "",
-                  "tpDificuldade": "FACIL",
-                  "tpDesafio": "PALAVRA",
-                  "dtInicio": "%s",
-                  "dtFim": "%s"
-                }
+            String prompt = """
+                     Gere um desafio inedito do tipo PALAVRA sobre o tema: %s.
+                     Retorne no formato JSON exato:
 
-               REGRAS OBRIGATORIAS:
-                - Retorne APENAS JSON valido
-                - Nao use markdown nem ```json
-                - Nao invente campos
+                     {
+                       "dsPergunta": "",
+                       "dsResposta": "",
+                       "tpDificuldade": "FACIL",
+                       "tpDesafio": "PALAVRA",
+                       "dtInicio": "%s",
+                       "dtFim": "%s"
+                     }
 
-                - A resposta deve ser UMA unica palavra
-                - A resposta deve ter EXATAMENTE 5 letras
-                - A resposta deve conter apenas letras (A-Z)
-                - A resposta nao pode ter acentos, espacos ou caracteres especiais
+                    REGRAS OBRIGATORIAS:
+                     - Retorne APENAS JSON valido
+                     - Nao use markdown nem ```json
+                     - Nao invente campos
 
-                - A pergunta deve ser formulada de forma que a resposta tenha 5 letras
+                     - A resposta deve ser UMA unica palavra
+                     - A resposta deve ter EXATAMENTE 5 letras
+                     - A resposta deve conter apenas letras (A-Z)
+                     - A resposta nao pode ter acentos, espacos ou caracteres especiais
 
-               VALIDACAO FINAL (OBRIGATORIO):
-                - Conte as letras da resposta
-                - Se nao tiver exatamente 5 letras, DESCARTE e gere novamente
-                - So retorne quando a resposta tiver 5 letras
-                """.formatted(tema, today, today);
+                     - A pergunta deve ser formulada de forma que a resposta tenha 5 letras
 
-        DesafioRequestDTO dto = chatClient.prompt()
-                .user(prompt)
-                .call()
-                .entity(DesafioRequestDTO.class);
+                    VALIDACAO FINAL (OBRIGATORIO):
+                     - Conte as letras da resposta
+                     - Se nao tiver exatamente 5 letras, DESCARTE e gere novamente
+                     - So retorne quando a resposta tiver 5 letras
+                     """.formatted(tema, today, today);
 
-        validarRespostaDaIa(dto, data);
+            DesafioRequestDTO dto = chatClient.prompt()
+                    .user(prompt)
+                    .call()
+                    .entity(DesafioRequestDTO.class);
 
-        return dto;
+            validarRespostaDaIa(dto, data);
+
+            return dto;
+        } catch (Exception e) {
+            e.printStackTrace(); 
+            throw new RuntimeException("Failed to generate content: " + e.getMessage(), e);
+        }
     }
 
     private void validarRespostaDaIa(DesafioRequestDTO dto, LocalDate data) {
