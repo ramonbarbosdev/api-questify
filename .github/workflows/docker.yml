@@ -66,6 +66,7 @@ jobs:
               -p ${{ env.HOST_PORT }}:${{ env.CONTAINER_PORT }} \
               --env-file ${{ env.ENV_FILE }} \
               -e SPRING_PROFILES_ACTIVE=prod \
+              -e GOOGLE_APPLICATION_CREDENTIALS=/app/gcp-credentials.json \
               -v /home/app/gcp-credentials.json:/app/gcp-credentials.json \
               ghcr.io/${{ github.repository }}:latest
 
