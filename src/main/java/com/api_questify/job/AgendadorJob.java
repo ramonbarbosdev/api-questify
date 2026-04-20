@@ -10,6 +10,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import com.api_questify.dto.DesafioRequestDTO;
+import com.api_questify.dto.DesafioRequestGeralDTO;
 import com.api_questify.service.DesafioAgendaService;
 import com.api_questify.service.DesafioDiarioService;
 import com.api_questify.service.DesafioService;
@@ -21,16 +22,11 @@ public class AgendadorJob {
     private static final ZoneId ZONE_ID = ZoneId.of("America/Sao_Paulo");
     private static final int MAX_TENTATIVAS = 3;
     private static final List<String> TEMAS = List.of(
-            "astronomia",
-            "biologia",
-            "geografia",
-            "historia",
-            "tecnologia",
-            "matematica recreativa",
-            "cultura brasileira",
-            "lingua portuguesa",
-            "ciencia do cotidiano",
-            "logica");
+            "Mitologia Mundial", "Culinária Internacional", "Grandes Invenções",
+            "Exploração Espacial", "Fauna e Flora Africana", "Império Romano",
+            "Pintores Famosos", "Cinema Clássico", "Esportes Olímpicos",
+            "Capitais do Mundo", "Corpo Humano", "Literatura Universal",
+            "Música e Instrumentos", "Oceanografia", "Eventos do Século XX");
 
     private final DesafioDiarioService service;
     private final DesafioService desafioService;
@@ -51,23 +47,23 @@ public class AgendadorJob {
         LocalDate hoje = LocalDate.now(ZONE_ID);
         log.info("Iniciando job de desafio diario. data={}", hoje);
 
-        if (agendaService.existeDesafioNaData(hoje)) {
-            log.info("Desafio diario ja existe. IA nao sera chamada. data={}", hoje);
-            return;
-        }
+        // if (agendaService.existeDesafioNaData(hoje)) {
+        // log.info("Desafio diario ja existe. IA nao sera chamada. data={}", hoje);
+        // return;
+        // }
 
-        DesafioRequestDTO dto = gerarDesafioUnico(hoje);
+        DesafioRequestGeralDTO dto = gerarDesafioUnico(hoje);
         desafioService.salvar(dto);
 
         log.info("Desafio diario criado com sucesso. data={} pergunta={}", hoje, dto.getDsPergunta());
     }
 
-    public DesafioRequestDTO gerarDesafioUnico(LocalDate data) {
+    public DesafioRequestGeralDTO gerarDesafioUnico(LocalDate data) {
 
         for (int tentativa = 1; tentativa <= MAX_TENTATIVAS; tentativa++) {
 
             String tema = escolherTema(data, tentativa);
-            DesafioRequestDTO dto = service.gerarDesafioDiario(tema, data);
+            DesafioRequestGeralDTO dto = service.gerarDesafioDiario(tema, data);
 
             if (!desafioService.existePergunta(dto.getDsPergunta())) {
                 return dto;
@@ -83,7 +79,7 @@ public class AgendadorJob {
     }
 
     private String escolherTema(LocalDate data, int tentativa) {
-        int index = Math.floorMod(data.hashCode() + tentativa - 1, TEMAS.size());
-        return TEMAS.get(index);
+        int seed = data.getDayOfYear() + tentativa;
+        return TEMAS.get(seed % TEMAS.size());
     }
 }

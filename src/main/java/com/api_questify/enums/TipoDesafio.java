@@ -4,5 +4,5 @@ public enum TipoDesafio {
     PALAVRA,
     NUMERO,
     QUIZ,
-    PADRAO
+    // PADRAO
 }

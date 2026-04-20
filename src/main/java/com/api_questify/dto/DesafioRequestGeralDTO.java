@@ -1,7 +1,5 @@
 package com.api_questify.dto;
 
-import com.api_questify.enums.TipoDesafio;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,9 +9,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class DesafioComResultadoDTO extends DesafioBaseResponseDTO {
+public class DesafioRequestGeralDTO extends DesafioBaseDTO {
 
-    private ResultadoDTO resultado;
-    private QuizResponseDTO conteudo;
-
+    private QuizConteudoDTO conteudo;
 }

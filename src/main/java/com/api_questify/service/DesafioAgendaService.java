@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.api_questify.dto.DesafioRequestDTO;
+import com.api_questify.dto.DesafioRequestGeralDTO;
 import com.api_questify.exception.BusinessException;
 import com.api_questify.model.Desafio;
 import com.api_questify.model.DesafioAgenda;
@@ -43,20 +44,20 @@ public class DesafioAgendaService {
                 return repository.existsByDtInicioLessThanEqualAndDtFimGreaterThanEqual(data, data);
         }
 
-        public void criarAgendaPorDesafio(DesafioRequestDTO dto, Desafio desafio) {
+        public void criarAgendaPorDesafio(DesafioRequestGeralDTO dto, Desafio desafio) {
 
                 if (dto.getDtInicio().isAfter(dto.getDtFim())) {
                         throw new BusinessException("Data início não pode ser maior que data fim");
                 }
 
-                boolean conflito = repository
-                                .existsByDtInicioLessThanEqualAndDtFimGreaterThanEqual(
-                                                dto.getDtFim(),
-                                                dto.getDtInicio());
+                // boolean conflito = repository
+                //                 .existsByDtInicioLessThanEqualAndDtFimGreaterThanEqual(
+                //                                 dto.getDtFim(),
+                //                                 dto.getDtInicio());
 
-                if (conflito) {
-                        throw new BusinessException("Ja existe um desafio ativo nesse periodo");
-                }
+                // if (conflito) {
+                //         throw new BusinessException("Ja existe um desafio ativo nesse periodo");
+                // }
 
                 DesafioAgenda agenda = new DesafioAgenda();
                 agenda.setIdDesafio(desafio.getIdDesafio());

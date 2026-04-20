@@ -17,6 +17,7 @@ import com.api_questify.dto.DesafioComResultadoDTO;
 import com.api_questify.dto.DesafioDiarioResponseDTO;
 import com.api_questify.dto.DesafioQuizRequestDTO;
 import com.api_questify.dto.DesafioRequestDTO;
+import com.api_questify.dto.DesafioRequestGeralDTO;
 import com.api_questify.dto.IdResponseDTO;
 import com.api_questify.job.AgendadorJob;
 import com.api_questify.model.Desafio;
@@ -31,23 +32,34 @@ import jakarta.validation.Valid;
 @Tag(name = "Desafios")
 public class DesafioController {
 
-    @Autowired
-    private DesafioService service;
+    private final DesafioService service;
 
-    @Autowired
-    private DesafioFacadeService facade;
+    private final DesafioFacadeService facade;
 
-    @Autowired
-    private AgendadorJob agendadorJob;
+    private final AgendadorJob agendadorJob;
+
+    public DesafioController(DesafioService service, DesafioFacadeService facade, AgendadorJob agendadorJob) {
+        this.service = service;
+        this.facade = facade;
+        this.agendadorJob = agendadorJob;
+    }
 
     @GetMapping("/ativos")
     public ResponseEntity<List<DesafioDiarioResponseDTO>> obterDesafiosAtivos() {
         return ResponseEntity.ok(service.obterDesafios());
     }
 
+    @GetMapping("/atual/{idDispositivo}")
+    public ResponseEntity<List<DesafioComResultadoDTO>> obterDesafioResultados(
+            @PathVariable String idDispositivo) {
+
+        return ResponseEntity.ok(
+                service.obterDesafiosComResultado(idDispositivo));
+    }
+
     @PostMapping
     public ResponseEntity<ApiResponseDTO<IdResponseDTO>> criarDesafio(
-            @RequestBody @Valid DesafioRequestDTO dto) {
+            @RequestBody @Valid DesafioRequestGeralDTO dto) {
 
         Desafio desafio = service.salvar(dto);
 
@@ -58,26 +70,7 @@ public class DesafioController {
                         new IdResponseDTO(desafio.getIdDesafio())));
     }
 
-    @PostMapping("/quiz")
-    public ResponseEntity<ApiResponseDTO<IdResponseDTO>> criarDesafioQuiz(
-            @RequestBody @Valid DesafioQuizRequestDTO dto) {
 
-        Desafio desafio = service.salvarQuiz(dto);
-
-        return ResponseEntity
-                .status(201)
-                .body(new ApiResponseDTO<>(
-                        "Quiz criado com sucesso",
-                        new IdResponseDTO(desafio.getIdDesafio())));
-    }
-
-    @GetMapping("/atual/{idDispositivo}")
-    public ResponseEntity<List<DesafioComResultadoDTO>> obterDesafioResultados(
-            @PathVariable String idDispositivo) {
-
-        return ResponseEntity.ok(
-                facade.obterDesafiosComResultado(idDispositivo));
-    }
 
     @DeleteMapping("/{idDesafio}")
     public ResponseEntity<Void> deletar(@PathVariable Long idDesafio) {

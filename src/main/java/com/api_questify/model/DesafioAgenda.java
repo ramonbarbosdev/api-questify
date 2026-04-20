@@ -27,9 +27,9 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "agenda_desafio", uniqueConstraints = {
-    @UniqueConstraint(name = "uk_agenda_desafio_dt_inicio", columnNames = "dt_inicio")
-})
+// @Table(name = "agenda_desafio", uniqueConstraints = {
+//     @UniqueConstraint(name = "uk_agenda_desafio_dt_inicio", columnNames = "dt_inicio")
+// })
 public class DesafioAgenda {
 
     @Id

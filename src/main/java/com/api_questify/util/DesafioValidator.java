@@ -22,7 +22,7 @@ public class DesafioValidator {
             case PALAVRA -> validarPalavra(respostaUsuario, desafio);
             case NUMERO -> validarNumero(respostaUsuario, desafio);
             case QUIZ -> validarQuiz(respostaUsuario, desafio);
-            case PADRAO -> validarPadrao(respostaUsuario, desafio);
+            // case PADRAO -> validarPadrao(respostaUsuario, desafio);
         };
     }
 
@@ -80,11 +80,13 @@ public class DesafioValidator {
         }
     }
 
-    private ValidacaoResultado validarQuiz(String resposta, Desafio desafio) {
+    private ValidacaoResultado validarQuiz(String respostaUsuario, Desafio desafio) {
+        String correta = desafio.getDsResposta().trim().toUpperCase();
+        String usuario = respostaUsuario.trim().toUpperCase();
 
-        boolean sucesso = resposta.equalsIgnoreCase(desafio.getDsResposta());
+        boolean acertou = correta.equals(usuario);
 
-        return sucesso(null, sucesso);
+        return sucesso(null, acertou);
     }
 
     private ValidacaoResultado validarPadrao(String resposta, Desafio desafio) {

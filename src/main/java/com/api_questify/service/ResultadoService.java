@@ -10,13 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.api_questify.dto.DesafioComResultadoDTO;
-import com.api_questify.dto.DesafioDiarioResponseDTO;
 import com.api_questify.dto.RespostaDTO;
-import com.api_questify.dto.ResultadoDTO;
 import com.api_questify.dto.ResultadoRequestDTO;
 import com.api_questify.dto.ResultadoResponseDTO;
-import com.api_questify.enums.TipoDesafio;
 import com.api_questify.exception.BusinessException;
 import com.api_questify.model.Desafio;
 import com.api_questify.model.Resultado;
@@ -30,133 +26,129 @@ public class ResultadoService {
 
     @Autowired
     private ResultadoRepository repository;
-
     @Autowired
     private DesafioService desafioService;
-
     @Autowired
     private UsuarioService usuarioService;
-
     @Autowired
     private DesafioValidator validator;
 
-    public static final Integer MAXIMO_TENTATIVA = 5;
+    public static final Integer MAXIMO_TENTATIVAS_PALAVRA = 5;
 
     @Transactional(rollbackFor = Exception.class)
     public ResultadoResponseDTO responderDesafio(ResultadoRequestDTO dto) {
-
+        // 1. Obtenção de contexto
         Desafio desafio = desafioService.obterDesafioAtivoPorId(dto.getIdDesafio());
-
-        Resultado existente = obterResultadoPorDesafio(dto.getIdDesafio());
-
-        if (existente != null && existente.getFlSucesso()) {
-            return erro("Você já respondeu o desafio.", desafio);
-        }
-
         Usuario usuario = obterOuSalvarDipositivo(dto.getIdDispositivo());
+        
+        if (usuario == null) return criarErroResponse("Usuário não identificado", desafio);
 
-        if (usuario == null) {
-            return erro("Usuário não existe", desafio);
-        }
+        // 2. Verificação de histórico
+        Resultado existente = obterResultadoPorDesafioEDispositivo(dto.getIdDesafio(), dto.getIdDispositivo());
 
+        // 3. Aplicação de Regras de Negócio (Travas)
+        String mensagemErro = validarRegrasDeNegocio(existente, desafio);
+        if (mensagemErro != null) return criarErroResponse(mensagemErro, desafio);
+
+        // 4. Validação da Resposta técnica
         ValidacaoResultado validacao = validator.validar(dto.getDsResposta(), desafio);
+        if (!validacao.isValido()) return criarErroResponse(validacao.getMensagem(), desafio);
 
-        if (!validacao.isValido()) {
-            return erro(validacao.getMensagem(), desafio);
-        }
+        // 5. Processamento do Resultado
+        Integer proximaTentativa = (existente != null ? existente.getNuTentativa() : 0) + 1;
+        Resultado resultadoSalvo = persistirResposta(dto, usuario, validacao, proximaTentativa);
 
-        Integer nuTentativas = existente != null
-                ? existente.getNuTentativa() + 1
-                : 1;
+        // 6. Definição do estado de finalização para o Front-end
+        boolean finalizado = verificarSeDesafioEncerrou(validacao.isSucesso(), proximaTentativa, desafio);
 
-        if (nuTentativas > MAXIMO_TENTATIVA) {
-            return erro("Limite de tentativas atingido", desafio);
-        }
+        return criarSucessoResponse(validacao, finalizado, desafio, resultadoSalvo.getDsResposta());
+    }
 
-        boolean esgotouTentativas = nuTentativas >= MAXIMO_TENTATIVA;
+    /**
+     * Centraliza as verificações de permissão baseadas no tipo de desafio.
+     */
+    private String validarRegrasDeNegocio(Resultado existente, Desafio desafio) {
+        if (existente == null) return null;
 
-        boolean finalizado = esgotouTentativas;
+        // Regra universal: Se já acertou, não pode jogar de novo.
+        if (existente.getFlSucesso()) return "Você já concluiu este desafio com sucesso!";
 
+        // Regras por tipo
+        return switch (desafio.getTpDesafio()) {
+            case QUIZ -> "Você já respondeu este quiz. Apenas uma tentativa é permitida.";
+            case PALAVRA -> (existente.getNuTentativa() >= MAXIMO_TENTATIVAS_PALAVRA) 
+                            ? "Limite de tentativas atingido para este desafio." : null;
+            default -> null;
+        };
+    }
+
+    /**
+     * Determina se o front-end deve encerrar a partida e ir para a tela de resultados.
+     */
+    private boolean verificarSeDesafioEncerrou(boolean sucesso, Integer tentativas, Desafio desafio) {
+        return switch (desafio.getTpDesafio()) {
+            case QUIZ -> true; // Quiz encerra no primeiro envio (acerto ou erro)
+            case PALAVRA -> sucesso || tentativas >= MAXIMO_TENTATIVAS_PALAVRA;
+            // case NUMERO, PADRAO -> sucesso;
+            default -> sucesso;
+        };
+    }
+
+    /**
+     * Mapeia os dados para a entidade e salva no banco.
+     */
+    private Resultado persistirResposta(ResultadoRequestDTO dto, Usuario usuario, ValidacaoResultado v, Integer tentativa) {
         Resultado obj = new Resultado();
         obj.setIdDesafio(dto.getIdDesafio());
         obj.setIdUsuario(usuario.getIdUsuario());
         obj.setDsResposta(normalizar(dto.getDsResposta()));
-        obj.setNuTentativa(nuTentativas);
-        obj.setFlSucesso(validacao.isSucesso());
-        obj.setDtConcluido(validacao.isSucesso() ? LocalDateTime.now() : null);
-        obj.setTpStatus(validacao.getStatus());
-        obj.setDsFeedback(serializarFeedback(validacao.getFeedback()));
-
-        repository.save(obj);
-
-        finalizado = validacao.isSucesso() || esgotouTentativas;
-
-        return sucesso(validacao, finalizado, desafio, obj.getDsResposta());
+        obj.setNuTentativa(tentativa);
+        obj.setFlSucesso(v.isSucesso());
+        obj.setDtConcluido(v.isSucesso() ? LocalDateTime.now() : null);
+        obj.setTpStatus(v.getStatus());
+        obj.setDsFeedback(serializarFeedback(v.getFeedback()));
+        
+        return repository.save(obj);
     }
 
-    private ResultadoResponseDTO erro(String mensagem, Desafio desafio) {
+    // --- MÉTODOS DE FORMATAÇÃO DE RESPOSTA (DTOs) ---
+
+    private ResultadoResponseDTO criarErroResponse(String mensagem, Desafio desafio) {
         RespostaDTO resposta = new RespostaDTO();
         resposta.setValido(false);
         resposta.setMensagem(mensagem);
-        resposta.setStatus(null);
-        resposta.setFeedback(null);
-
-        return new ResultadoResponseDTO(
-                false,
-                false,
-                desafio.getTpDesafio(),
-                resposta);
+        
+        return new ResultadoResponseDTO(false, false, desafio.getTpDesafio(), resposta);
     }
 
-    private ResultadoResponseDTO sucesso(
-            ValidacaoResultado validacao,
-            boolean finalizado,
-            Desafio desafio,
-            String respostaUsuario) {
-
+    private ResultadoResponseDTO criarSucessoResponse(ValidacaoResultado v, boolean finalizado, Desafio desafio, String respUsuario) {
         RespostaDTO resposta = new RespostaDTO();
         resposta.setValido(true);
-        resposta.setMensagem(null);
-        resposta.setStatus(validacao.getStatus());
-        resposta.setFeedback(validacao.getFeedback());
-        resposta.setRespostaUsuario(respostaUsuario);
+        resposta.setStatus(v.getStatus());
+        resposta.setFeedback(v.getFeedback());
+        resposta.setRespostaUsuario(respUsuario);
 
-        return new ResultadoResponseDTO(
-                validacao.isSucesso(),
-                finalizado,
-                desafio.getTpDesafio(),
-                resposta);
+        return new ResultadoResponseDTO(v.isSucesso(), finalizado, desafio.getTpDesafio(), resposta);
     }
 
+    // --- MÉTODOS AUXILIARES ---
+
     private String normalizar(String valor) {
-        if (valor == null || valor.isBlank()) {
-            throw new BusinessException("Resposta é obrigatória");
-        }
+        if (valor == null || valor.isBlank()) throw new BusinessException("Resposta é obrigatória");
         return valor.trim().toUpperCase();
     }
 
-    public Resultado obterResultadoPorDesafio(Long idDesafio) {
+    private String serializarFeedback(List<String> feedback) {
+        return (feedback == null || feedback.isEmpty()) ? null : String.join(",", feedback);
+    }
 
-        return repository
-                .findTopByIdDesafioOrderByIdResultadoDesc(idDesafio)
+    public Resultado obterResultadoPorDesafioEDispositivo(Long idDesafio, String idDispositivo) {
+        return repository.findTopByIdDesafioAndUsuario_IdDispositivoOrderByIdResultadoDesc(idDesafio, idDispositivo)
                 .orElse(null);
     }
 
     public Usuario obterOuSalvarDipositivo(String id) {
-
         Usuario usuario = usuarioService.obterUsuarioPorDispositivo(id);
-
-        if (usuario == null) {
-            usuario = usuarioService.salvarDispositivo(id);
-        }
-
-        return usuario;
+        return (usuario != null) ? usuario : usuarioService.salvarDispositivo(id);
     }
-
-    private String serializarFeedback(List<String> feedback) {
-        if (feedback == null)
-            return null;
-        return String.join(",", feedback);
-    }
-
 }

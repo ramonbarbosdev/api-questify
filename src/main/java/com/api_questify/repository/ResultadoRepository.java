@@ -10,7 +10,7 @@ import com.api_questify.model.Resultado;
 
 public interface ResultadoRepository extends JpaRepository<Resultado, Long> {
 
-    Optional<Resultado> findTopByIdDesafioOrderByIdResultadoDesc(Long id);
+    Optional<Resultado> findTopByIdDesafioAndUsuario_IdDispositivoOrderByIdResultadoDesc(Long id, String IdDispositivo);
 
     @Query("""
                 SELECT r FROM Resultado r
@@ -19,7 +19,7 @@ public interface ResultadoRepository extends JpaRepository<Resultado, Long> {
                 ORDER BY r.nuTentativa
             """)
     List<Resultado> buscarPorDesafioEdispositivo(
-            Long idDesafio,
+            Long idDesafio,  
             String idDispositivo);
 
     void deleteByIdDesafio(Long IdDesafio);

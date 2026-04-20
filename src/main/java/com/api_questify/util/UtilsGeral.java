@@ -5,6 +5,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.Normalizer;
 import java.util.HexFormat;
+import java.util.List;
 import java.util.Locale;
 
 public class UtilsGeral {
@@ -36,6 +37,12 @@ public class UtilsGeral {
         } catch (NoSuchAlgorithmException ex) {
             throw new IllegalStateException("Algoritmo SHA-256 indisponivel", ex);
         }
+    }
+
+    public static List<String> desserializarFeedback(String feedback) {
+        if (feedback == null || feedback.isBlank())
+            return List.of();
+        return List.of(feedback.split(","));
     }
 
 }

@@ -56,6 +56,10 @@ public class Desafio {
     @NotNull(message = "A resposta é obrigatorio!")
     @Column(name = "ds_resposta")
     private String dsResposta;
+    
+    @NotNull(message = "O tamanho é obrigatorio!")
+    @Column(name = "nu_tamanhoresposta")
+    private Integer nuTamanhoResposta;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "tp_desafio")
@@ -75,7 +79,7 @@ public class Desafio {
         this.conteudo = quiz;
 
         if (quiz != null) {
-            quiz.setDesafio(this); // 🔥 ESSENCIAL
+            quiz.setDesafio(this);
         }
     }
 
