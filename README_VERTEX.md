@@ -1,10 +1,10 @@
-# Vertex AI (Gemini) — Setup Simples (Dev & Prod)
+# 🚀 Vertex AI (Gemini) — Setup Simples (Dev & Prod)
 
 Guia direto pra fazer o **Spring Boot + Spring AI (Gemini)** funcionar sem erro de credencial.
 
 ---
 
-## Regra única
+##  Regra única
 
 O Google precisa da variável:
 
@@ -20,7 +20,7 @@ Your default credentials were not found
 
 ---
 
-# DEV (local)
+#  DEV (local)
 
 ##  PowerShell (Windows)
 
@@ -29,15 +29,17 @@ $env:GOOGLE_APPLICATION_CREDENTIALS="C:\Users\Ramon\Documents\dev\Java\api-quest
 mvn spring-boot:run
 ```
 
+Verificar:
+
 ```powershell
 echo $env:GOOGLE_APPLICATION_CREDENTIALS
 ```
 
-para iniciar com o debug:
+---
 
-```powershell
-Run and Debug → create launch.json → Java
+## Debug no VSCode
 
+```json
 {
   "type": "java",
   "name": "Debug Spring Boot",
@@ -48,7 +50,6 @@ Run and Debug → create launch.json → Java
   }
 }
 ```
-
 
 ---
 
@@ -61,7 +62,7 @@ chatClient.prompt()
     .content();
 ```
 
-esperado:
+Esperado:
 
 ```
 OK
@@ -69,21 +70,9 @@ OK
 
 ---
 
-#  PROD (servidor Linux)
+#  PROD (Linux)
 
-##  Definir variável
-
-```bash
-export GOOGLE_APPLICATION_CREDENTIALS=/home/app/gcp-credentials.json
-```
-
-```powershell
-echo $GOOGLE_APPLICATION_CREDENTIALS
-```
-
----
-
-## Estrutura
+##  Estrutura
 
 ```
 /home/app/
@@ -92,10 +81,68 @@ echo $GOOGLE_APPLICATION_CREDENTIALS
 
 ---
 
-##  Segurança
+## Segurança
 
 ```bash
 chmod 600 /home/app/gcp-credentials.json
+```
+
+---
+
+# PROD (Docker) ✅ **IMPORTANTE**
+
+Em Docker, **export NÃO funciona**
+
+Você precisa:
+
+## 1. Passar variável
+
+```bash
+-e GOOGLE_APPLICATION_CREDENTIALS=/app/gcp-credentials.json
+```
+
+---
+
+## 2. Montar o arquivo (VOLUME)
+
+```bash
+-v /home/app/gcp-credentials.json:/app/gcp-credentials.json
+```
+
+---
+
+## Exemplo completo
+
+```bash
+docker run -d \
+  --name api-questify \
+  -p 8082:8080 \
+  -e SPRING_PROFILES_ACTIVE=prod \
+  -e GOOGLE_APPLICATION_CREDENTIALS=/app/gcp-credentials.json \
+  -v /home/app/gcp-credentials.json:/app/gcp-credentials.json \
+  ghcr.io/seu-repo:latest
+```
+
+---
+
+##  Por que isso é necessário?
+
+Dentro do container:
+
+* `/home/app/...` NÃO existe 
+* `/app/gcp-credentials.json` existe 
+
+---
+
+## Testar dentro do container
+
+```bash
+docker exec -it api-questify sh
+```
+
+```bash
+echo $GOOGLE_APPLICATION_CREDENTIALS
+ls -l /app/gcp-credentials.json
 ```
 
 ---
@@ -110,20 +157,45 @@ spring.ai.vertex.ai.gemini.model=gemini-1.5-flash
 
 ---
 
-#  O que NÃO funciona
+# O que NÃO funciona
 
 * `.env` sozinho
 * `application.properties` com credencial
-* carregar JSON via código (com starter)
+* `export` fora do container (Docker)
+* caminho que não existe dentro do container
 
 ---
 
-#  Conclusão
+# Insight importante
 
-* Defina `GOOGLE_APPLICATION_CREDENTIALS`
-* Use caminho absoluto
-* Rode a aplicação
+```
+Host ≠ Container
+```
 
-acabou o problema
+Você precisa garantir:
+
+```
+ENV + arquivo acessível dentro do container
+```
+
+---
+
+# Conclusão
+
+✔️ Defina `GOOGLE_APPLICATION_CREDENTIALS`
+✔️ Use caminho válido dentro do container
+✔️ Monte o JSON com volume (`-v`)
+✔️ Rode a aplicação
+
+---
+
+## Resultado final
+
+Sua aplicação estará pronta para:
+
+* gerar conteúdo com IA
+* rodar em produção
+* executar jobs automáticos
+* escalar com segurança
 
 ---
