@@ -30,34 +30,38 @@ public class DesafioDiarioService {
             String today = data.toString();
 
             String prompt = """
-                     Gere um desafio inedito do tipo PALAVRA sobre o tema: %s.
-                     Retorne no formato JSON exato:
+                    Gere um desafio inedito do tipo PALAVRA sobre o tema: %s.
 
-                     {
-                       "dsPergunta": "",
-                       "dsResposta": "",
-                       "tpDificuldade": "FACIL",
-                       "tpDesafio": "PALAVRA",
-                       "dtInicio": "%s",
-                       "dtFim": "%s"
-                     }
+                    IMPORTANTE:
+                    A resposta DEVE obrigatoriamente ser uma palavra com EXATAMENTE 5 letras.
+                    Se nao for possivel, gere outra ate atender essa regra.
 
-                    REGRAS OBRIGATORIAS:
-                     - Retorne APENAS JSON valido
-                     - Nao use markdown nem ```json
-                     - Nao invente campos
+                    Retorne no formato JSON exato:
 
-                     - A resposta deve ser UMA unica palavra
-                     - A resposta deve ter EXATAMENTE 5 letras
-                     - A resposta deve conter apenas letras (A-Z)
-                     - A resposta nao pode ter acentos, espacos ou caracteres especiais
+                    {
+                    "dsPergunta": "",
+                    "dsResposta": "",
+                    "tpDificuldade": "FACIL",
+                    "tpDesafio": "PALAVRA",
+                    "dtInicio": "%s",
+                    "dtFim": "%s"
+                    }
 
-                     - A pergunta deve ser formulada de forma que a resposta tenha 5 letras
+                    REGRAS:
+                    - Retorne APENAS JSON valido
+                    - Nao use markdown nem ```json
+                    - Nao invente campos
 
-                    VALIDACAO FINAL (OBRIGATORIO):
-                     - Conte as letras da resposta
-                     - Se nao tiver exatamente 5 letras, DESCARTE e gere novamente
-                     - So retorne quando a resposta tiver 5 letras
+                    - A resposta deve conter EXATAMENTE 5 letras (obrigatorio)
+                    - A resposta deve conter apenas letras A-Z
+                    - A resposta nao pode conter espacos
+                    - A resposta nao pode conter acentos
+
+                    - A pergunta deve levar a uma resposta de 5 letras
+
+                    VALIDACAO:
+                    - Conte as letras da resposta
+                    - Se nao tiver 5 letras, descarte e gere novamente
                      """.formatted(tema, today, today);
 
             DesafioRequestDTO dto = chatClient.prompt()

@@ -26,6 +26,7 @@ import com.api_questify.model.DesafioQuizOpcao;
 import com.api_questify.repository.DesafioQuizOpcaoRepository;
 import com.api_questify.repository.DesafioQuizRepository;
 import com.api_questify.repository.DesafioRepository;
+import com.api_questify.repository.ResultadoRepository;
 import com.api_questify.util.UtilsGeral;
 
 @Service
@@ -36,6 +37,9 @@ public class DesafioService {
 
     @Autowired
     private DesafioAgendaService agendaService;
+
+    @Autowired
+    private ResultadoRepository repositorioResultado;
 
     @Transactional(rollbackFor = Exception.class)
     public Desafio salvar(DesafioRequestDTO dto) {
@@ -261,7 +265,7 @@ public class DesafioService {
     @Transactional(rollbackFor = Exception.class)
     public void deletar(Long id) {
         agendaService.deletarRegistros(id);
-
+        repositorioResultado.deleteByIdDesafio(id);
         repository.deleteById(id);
     }
 

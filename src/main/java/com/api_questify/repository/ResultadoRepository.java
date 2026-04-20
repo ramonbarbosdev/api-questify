@@ -21,4 +21,6 @@ public interface ResultadoRepository extends JpaRepository<Resultado, Long> {
     List<Resultado> buscarPorDesafioEdispositivo(
             Long idDesafio,
             String idDispositivo);
+
+    void deleteByIdDesafio(Long IdDesafio);
 }
