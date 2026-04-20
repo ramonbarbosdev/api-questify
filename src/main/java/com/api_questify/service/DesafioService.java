@@ -17,6 +17,7 @@ import com.api_questify.dto.QuizOpcaoResponseDTO;
 import com.api_questify.dto.QuizResponseDTO;
 import com.api_questify.enums.TipoDesafio;
 import com.api_questify.exception.BusinessException;
+import com.api_questify.exception.ConflictException;
 import com.api_questify.exception.ResourceNotFoundException;
 import com.api_questify.model.Desafio;
 import com.api_questify.model.DesafioAgenda;
@@ -39,8 +40,15 @@ public class DesafioService {
     @Transactional(rollbackFor = Exception.class)
     public Desafio salvar(DesafioRequestDTO dto) {
 
+        String hashPergunta = UtilsGeral.gerarHashPergunta(dto.getDsPergunta());
+
+        if (repository.existsByDsHashPergunta(hashPergunta)) {
+            throw new ConflictException("Ja existe um desafio com pergunta igual ou muito parecida");
+        }
+
         Desafio objeto = new Desafio();
         objeto.setDsPergunta(dto.getDsPergunta());
+        objeto.setDsHashPergunta(hashPergunta);
         objeto.setTpDificuldade(dto.getTpDificuldade());
         objeto.setTpDesafio(dto.getTpDesafio());
         objeto.setDsResposta(dto.getDsResposta());
@@ -55,8 +63,15 @@ public class DesafioService {
     @Transactional(rollbackFor = Exception.class)
     public Desafio salvarQuiz(DesafioQuizRequestDTO dto) {
 
+        String hashPergunta = UtilsGeral.gerarHashPergunta(dto.getDsPergunta());
+
+        if (repository.existsByDsHashPergunta(hashPergunta)) {
+            throw new ConflictException("Ja existe um desafio com pergunta igual ou muito parecida");
+        }
+
         Desafio objeto = new Desafio();
         objeto.setDsPergunta(dto.getDsPergunta());
+        objeto.setDsHashPergunta(hashPergunta);
         objeto.setTpDificuldade(dto.getTpDificuldade());
         objeto.setTpDesafio(dto.getTpDesafio());
         objeto.setDsResposta(dto.getDsResposta());
@@ -79,7 +94,8 @@ public class DesafioService {
     }
 
     public boolean existePergunta(String pergunta) {
-        return repository.existsByDsPerguntaIgnoreCase(pergunta.trim());
+        String hashPergunta = UtilsGeral.gerarHashPergunta(pergunta);
+        return hashPergunta != null && repository.existsByDsHashPergunta(hashPergunta);
     }
 
     private void validarConsistenciaQuiz(DesafioQuizRequestDTO dto) {

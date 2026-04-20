@@ -15,4 +15,6 @@ public interface DesafioRepository extends JpaRepository<Desafio, Long> {
 
        boolean existsByDsPerguntaIgnoreCase(String dsPergunta);
 
+       boolean existsByDsHashPergunta(String dsHashPergunta);
+
 }

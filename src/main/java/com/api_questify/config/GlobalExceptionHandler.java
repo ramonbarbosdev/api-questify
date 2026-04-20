@@ -124,6 +124,23 @@ public class GlobalExceptionHandler {
                 return ResponseEntity.status(409).body(response);
         }
 
+        @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+        public ResponseEntity<ApiErrorResponse> handleDataIntegrity(
+                        org.springframework.dao.DataIntegrityViolationException ex,
+                        HttpServletRequest request) {
+
+                ApiErrorResponse response = ApiErrorResponse.builder()
+                                .status(409)
+                                .error("DATA_INTEGRITY")
+                                .message("Registro duplicado ou inconsistente")
+                                .debugMessage(ex.getMostSpecificCause().getMessage())
+                                .path(request.getRequestURI())
+                                .timestamp(LocalDateTime.now())
+                                .build();
+
+                return ResponseEntity.status(409).body(response);
+        }
+
         @ExceptionHandler(org.springframework.transaction.TransactionSystemException.class)
         public ResponseEntity<ApiErrorResponse> handleTransaction(
                         org.springframework.transaction.TransactionSystemException ex,

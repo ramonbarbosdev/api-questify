@@ -4,6 +4,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -34,7 +35,9 @@ import jakarta.validation.constraints.NotNull;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "desafio")
+@Table(name = "desafio", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_desafio_hash_pergunta", columnNames = "ds_hash_pergunta")
+})
 public class Desafio {
 
     @Id
@@ -46,6 +49,9 @@ public class Desafio {
     @NotNull(message = "A pergunta é obrigatorio!")
     @Column(name = "ds_pergunta")
     private String dsPergunta;
+
+    @Column(name = "ds_hash_pergunta", unique = true, length = 64)
+    private String dsHashPergunta;
 
     @NotNull(message = "A resposta é obrigatorio!")
     @Column(name = "ds_resposta")

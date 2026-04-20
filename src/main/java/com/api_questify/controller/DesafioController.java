@@ -18,9 +18,8 @@ import com.api_questify.dto.DesafioDiarioResponseDTO;
 import com.api_questify.dto.DesafioQuizRequestDTO;
 import com.api_questify.dto.DesafioRequestDTO;
 import com.api_questify.dto.IdResponseDTO;
-import com.api_questify.model.ChatResult;
+import com.api_questify.job.AgendadorJob;
 import com.api_questify.model.Desafio;
-import com.api_questify.service.DesafioDiarioService;
 import com.api_questify.service.DesafioFacadeService;
 import com.api_questify.service.DesafioService;
 
@@ -39,7 +38,7 @@ public class DesafioController {
     private DesafioFacadeService facade;
 
     @Autowired
-    private DesafioDiarioService desafioDiarioService;
+    private AgendadorJob agendadorJob;
 
     @GetMapping("/ativos")
     public ResponseEntity<List<DesafioDiarioResponseDTO>> obterDesafiosAtivos() {
@@ -91,13 +90,9 @@ public class DesafioController {
     @GetMapping("/gerar")
     public ResponseEntity<?> gerarDesario() {
 
-        DesafioRequestDTO dto = desafioDiarioService.gerarDesafioDiario();
+        agendadorJob.gerarDiariamente();
 
-        service.salvar(dto);
-
-        return ResponseEntity
-                .status(201)
-                .body(dto);
+        return ResponseEntity.ok(new ApiResponseDTO<>("Fluxo de desafio diario executado", null));
     }
 
 }

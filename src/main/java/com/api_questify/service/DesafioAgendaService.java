@@ -39,6 +39,10 @@ public class DesafioAgendaService {
                                                 agora);
         }
 
+        public boolean existeDesafioNaData(LocalDate data) {
+                return repository.existsByDtInicioLessThanEqualAndDtFimGreaterThanEqual(data, data);
+        }
+
         public void criarAgendaPorDesafio(DesafioRequestDTO dto, Desafio desafio) {
 
                 if (dto.getDtInicio().isAfter(dto.getDtFim())) {
@@ -50,9 +54,9 @@ public class DesafioAgendaService {
                                                 dto.getDtFim(),
                                                 dto.getDtInicio());
 
-                // if (conflito) {
-                // throw new BusinessException("Já existe um desafio ativo nesse período");
-                // }
+                if (conflito) {
+                        throw new BusinessException("Ja existe um desafio ativo nesse periodo");
+                }
 
                 DesafioAgenda agenda = new DesafioAgenda();
                 agenda.setIdDesafio(desafio.getIdDesafio());

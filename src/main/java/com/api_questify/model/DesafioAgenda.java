@@ -15,6 +15,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -26,7 +27,9 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "agenda_desafio")
+@Table(name = "agenda_desafio", uniqueConstraints = {
+    @UniqueConstraint(name = "uk_agenda_desafio_dt_inicio", columnNames = "dt_inicio")
+})
 public class DesafioAgenda {
 
     @Id
@@ -45,11 +48,11 @@ public class DesafioAgenda {
     private Long idDesafio;
 
     @NotNull(message = "A data de inicio é obrigatorio!")
-    @Column(name = "dt_fim")
+    @Column(name = "dt_inicio")
     private LocalDate dtInicio;
 
     @NotNull(message = "A data do fim é obrigatorio!")
-    @Column(name = "dt_inicio")
+    @Column(name = "dt_fim")
     private LocalDate dtFim;
 
 }
