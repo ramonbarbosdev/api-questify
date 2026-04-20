@@ -36,12 +36,6 @@ public class DesafioService {
     @Autowired
     private DesafioAgendaService agendaService;
 
-    @Autowired
-    private DesafioQuizRepository quizRepository;
-
-    @Autowired
-    private DesafioQuizOpcaoRepository opcaoRepository;
-
     @Transactional(rollbackFor = Exception.class)
     public Desafio salvar(DesafioRequestDTO dto) {
 
@@ -49,6 +43,7 @@ public class DesafioService {
         objeto.setDsPergunta(dto.getDsPergunta());
         objeto.setTpDificuldade(dto.getTpDificuldade());
         objeto.setTpDesafio(dto.getTpDesafio());
+        objeto.setDsResposta(dto.getDsResposta());
 
         objeto = repository.save(objeto);
 
@@ -81,6 +76,10 @@ public class DesafioService {
         agendaService.criarAgendaPorDesafio(dtoPadrao, objeto);
 
         return objeto;
+    }
+
+    public boolean existePergunta(String pergunta) {
+        return repository.existsByDsPerguntaIgnoreCase(pergunta.trim());
     }
 
     private void validarConsistenciaQuiz(DesafioQuizRequestDTO dto) {
@@ -122,16 +121,13 @@ public class DesafioService {
             throw new RuntimeException("Conteúdo do quiz inválido");
         }
 
-        // 🔥 1. cria o quiz (SEM salvar)
         DesafioQuiz quiz = new DesafioQuiz();
         quiz.setFlEmbaralhar(conteudo.getFlEmbaralhar());
         quiz.setNuTempoLimite(conteudo.getNuTempoLimite());
         quiz.setDsRespostaCorreta(conteudo.getDsRespostaCorreta());
 
-        // 🔥 2. vincula corretamente (ESSENCIAL para @MapsId)
-        desafio.setConteudo(quiz); // isso deve fazer quiz.setDesafio(this)
+        desafio.setConteudo(quiz);
 
-        // 🔥 3. cria as opções
         List<DesafioQuizOpcao> opcoes = new ArrayList<>();
 
         for (var opcaoDto : conteudo.getOpcoes()) {
@@ -144,19 +140,15 @@ public class DesafioService {
             opcoes.add(opcao);
         }
 
-        // 🔥 ESSENCIAL: setar lista no quiz
         quiz.setOpcoes(opcoes);
 
-        // 🔥 4. valida e encontra resposta correta
         var opcaoCorreta = opcoes.stream()
                 .filter(o -> o.getCdCodigo().equals(conteudo.getDsRespostaCorreta()))
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Resposta correta inválida"));
 
-        // 🔥 5. define resposta ANTES de salvar
         desafio.setDsResposta(opcaoCorreta.getNmRotulo());
 
-        // 🔥 6. salva SOMENTE o desafio (cascade resolve tudo)
         repository.save(desafio);
     }
 
@@ -248,6 +240,8 @@ public class DesafioService {
                 .orElseThrow(() -> new ResourceNotFoundException("Desafio não encontrado"));
     }
 
+
+    
     @Transactional(rollbackFor = Exception.class)
     public void deletar(Long id) {
         agendaService.deletarRegistros(id);
